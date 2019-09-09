@@ -28,9 +28,21 @@ class Game:
         self.start(self.pygame, screen)
     
 
+    def bodyColision(self, x, y):
+        if self.length > 0:                    
+            for i in range(0, self.length):                
+                if self.body[i]['x'] == x and self.body[i]['y'] == y:
+                    return True
+        return False  
+
+
     def randomPosition(self):
         x = random.randrange(21) * 20
         y = random.randrange(21) * 20
+
+        if self.bodyColision(x, y):
+            self.randomPosition()
+
         self.applePosition['x'] = x
         self.applePosition['y'] = y
 
@@ -74,32 +86,36 @@ class Game:
                         self.move['y'] = -20
                     if pygame.key.get_pressed()[pygame.K_DOWN]:
                         self.move['x'] = 0
-                        self.move['y'] = 20
-
-            pygame.draw.rect(screen, self.red, (self.applePosition['x'], self.applePosition['y'], 20, 20))
-            pygame.draw.rect(screen, self.white, (position.get('x'), position.get('y'), 20, 20))
-        
-            if self.length > 0:                    
-                for i in range(0, self.length):                
-                    pygame.draw.rect(screen, self.white, (self.body[i]['x'], self.body[i]['y'], 20, 20))                    
+                        self.move['y'] = 20            
             
             
             if loop % 10 == 0:
-                
-                if self.length > 0: 
+                if self.eateApple(position):
+                    self.randomPosition() 
+
+                if self.length > 0:
                     for i in range(0, self.length):
-                        if i + 1 < self.length:
-                            self.body[i] = self.body[i + 1]
+                        if i == self.length - 1:
+                            self.body[i]['x'] = position['x']
+                            self.body[i]['y'] = position['y']
                         else:
-                            self.body[i] = position
+                            self.body[i]['x'] = self.body[i + 1]['x']
+                            self.body[i]['y'] = self.body[i + 1]['y']
                         
                 position['x'] += self.move['x']
                 position['y'] += self.move['y']
                 self.checkColision(position)
-
-                if self.eateApple(position):
-                    self.randomPosition() 
                 
+                if self.bodyColision(position['x'], position['y']):
+                    pygame.display.quit()
+
+            pygame.draw.rect(screen, self.red, (self.applePosition['x'], self.applePosition['y'], 20, 20))
+            pygame.draw.rect(screen, self.white, (position.get('x'), position.get('y'), 20, 20))
+                      
+            if self.length > 0:                    
+                for i in range(0, self.length):                
+                    pygame.draw.rect(screen, self.white, (self.body[i]['x'], self.body[i]['y'], 20, 20))  
+
             loop += 1
             pygame.display.flip()
         else:
